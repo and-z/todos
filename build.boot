@@ -2,11 +2,16 @@
 (def version "0.1.0-SNAPSHOT")
 
 (set-env! :resource-paths #{"resources"}
-          :source-paths   #{"test" "src/clj"}
+          :source-paths   #{"test" "src/clj" "src/cljs"}
           :dependencies   '[[org.clojure/clojure "1.9.0-alpha15"]
+                            [org.clojure/clojurescript "1.9.562" :scope "test"]
+                            [adzerk/boot-cljs "2.0.0" :scope "test"]
+                            [adzerk/boot-reload "0.5.1" :scope "test"]
                             [com.stuartsierra/component "0.3.2"]
+                            [hiccup "1.0.5"]
                             [compojure "1.6.0"]
-                            [ring/ring-jetty-adapter "1.6.1"]
+                            [http-kit "2.2.0"]
+                            ;; [ring/ring-jetty-adapter "1.6.1"]
                             [ring/ring-defaults "0.3.0"]
                             [reloaded.repl "0.2.3" :scope "test"]
                             [adzerk/boot-test "RELEASE" :scope "test"]])
@@ -36,18 +41,27 @@
   (apply (resolve 'todos.core/-main) args))
 
 (require '[adzerk.boot-test :refer [test]]
+         '[adzerk.boot-cljs :refer [cljs]]
+         '[adzerk.boot-reload :refer [reload]]
          '[reloaded.repl :refer [system start stop go reset]])
 
-(defn init-dev []
-  (require 'todos.core)
-  (require '[clojure.tools.namespace.repl :as repl])
-  (clojure.tools.namespace.repl/set-refresh-dirs "src/clj")
-  (reloaded.repl/set-init! #((resolve 'todos.core/new-system) {:port 8080}))
-  (cleanup (stop)))
+(deftask start-webserver
+  [p port VAL int "webserver port."]
+  (require '[todos.core])
+  (let [initializer (resolve 'todos.core/new-system)]
+    (reloaded.repl/set-init! #(initializer {:port port}))
+    (fn [next-handler]
+     (fn [fileset]
+       (boot.util/info "Starting system ...\n")
+       (boot.util/info "System state is %s" (go))
+       (next-handler fileset)))))
 
 (deftask dev
   "Run system in development mode."
   []
-  (init-dev)
-  (go)
-  identity)
+  (comp
+   (watch :verbose true)
+   (reload)
+   (cljs)
+   (start-webserver :port 8090)
+   identity))
