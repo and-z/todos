@@ -1,4 +1,3 @@
-{:boot-reload {:on-jsload todos.core/init}
- :compiler-options {:main "todos.core"
+{:compiler-options {:main "todos.core"
                     :asset-path "/js/main.out"
                     }}

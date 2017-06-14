@@ -16,6 +16,11 @@
                             [reloaded.repl "0.2.3" :scope "test"]
                             [adzerk/boot-test "RELEASE" :scope "test"]])
 
+(require '[adzerk.boot-test :refer [test]]
+         '[adzerk.boot-cljs :refer [cljs]]
+         '[adzerk.boot-reload :refer [reload]]
+         '[reloaded.repl :refer [system start stop go reset]])
+
 (task-options!
  aot {:namespace   #{'todos.core}}
  pom {:project     project
@@ -26,7 +31,9 @@
       :license     {"Eclipse Public License"
                     "http://www.eclipse.org/legal/epl-v10.html"}}
  jar {:main        'todos.core
-      :file        (str "todos-" version "-standalone.jar")})
+      :file        (str "todos-" version "-standalone.jar")}
+ reload {:on-jsload 'todos.core/init
+         :asset-path "public"})
 
 (deftask build
   "Build the project locally as a JAR."
@@ -40,21 +47,24 @@
   (require '[todos.core :as app])
   (apply (resolve 'todos.core/-main) args))
 
-(require '[adzerk.boot-test :refer [test]]
-         '[adzerk.boot-cljs :refer [cljs]]
-         '[adzerk.boot-reload :refer [reload]]
-         '[reloaded.repl :refer [system start stop go reset]])
-
 (deftask start-webserver
   [p port VAL int "webserver port."]
-  (require '[todos.core])
-  (let [initializer (resolve 'todos.core/new-system)]
+  (require '[todos.core]
+           '[clojure.tools.namespace.repl])
+  (let [initializer (resolve 'todos.core/new-system)
+        state (atom nil)]
+    (clojure.tools.namespace.repl/set-refresh-dirs "src/clj")
     (reloaded.repl/set-init! #(initializer {:port port}))
     (fn [next-handler]
      (fn [fileset]
-       (boot.util/info "Starting system ...\n")
-       (boot.util/info "System state is %s" (go))
-       (next-handler fileset)))))
+       (if @state
+         (do
+           (boot.util/info "Skip starting system. It is already running.")
+           (next-handler fileset))
+         (do
+           (boot.util/info "Starting system ...\n")
+           (boot.util/info "System state is %s" (reset! state (go)))
+           (next-handler fileset)))))))
 
 (deftask dev
   "Run system in development mode."
