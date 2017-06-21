@@ -11,7 +11,6 @@
                             [hiccup "1.0.5"]
                             [compojure "1.6.0"]
                             [http-kit "2.2.0"]
-                            ;; [ring/ring-jetty-adapter "1.6.1"]
                             [ring/ring-defaults "0.3.0"]
                             [reloaded.repl "0.2.3" :scope "test"]
                             [adzerk/boot-test "RELEASE" :scope "test"]])
@@ -19,7 +18,8 @@
 (require '[adzerk.boot-test :refer [test]]
          '[adzerk.boot-cljs :refer [cljs]]
          '[adzerk.boot-reload :refer [reload]]
-         '[reloaded.repl :refer [system start stop go reset]])
+         '[clojure.tools.namespace.repl :as tns]
+         '[reloaded.repl :as rr :refer [system reset start stop go]])
 
 (task-options!
  aot {:namespace   #{'todos.core}}
@@ -47,31 +47,35 @@
   (require '[todos.core :as app])
   (apply (resolve 'todos.core/-main) args))
 
-(deftask start-webserver
+(deftask start-system
   [p port VAL int "webserver port."]
-  (require '[todos.core]
-           '[clojure.tools.namespace.repl])
-  (let [initializer (resolve 'todos.core/new-system)
-        state (atom nil)]
-    (clojure.tools.namespace.repl/set-refresh-dirs "src/clj")
+  (require '[todos.system])
+  (let [initializer (resolve 'todos.system/new-system)]
+    (apply tns/set-refresh-dirs (get-env :directories))
     (reloaded.repl/set-init! #(initializer {:port port}))
-    (fn [next-handler]
-     (fn [fileset]
-       (if @state
-         (do
-           (boot.util/info "Skip starting system. It is already running.")
-           (next-handler fileset))
-         (do
-           (boot.util/info "Starting system ...\n")
-           (boot.util/info "System state is %s" (reset! state (go)))
-           (next-handler fileset)))))))
+    (with-pass-thru _
+      (boot.util/info "Starting system ...\n")
+      (boot.util/info "System state is %s\n" (go)))))
 
-(deftask dev
-  "Run system in development mode."
+(deftask frontend
   []
   (comp
    (watch :verbose true)
    (reload)
    (cljs)
-   (start-webserver :port 8090)
+   identity))
+
+(deftask backend
+  [p port VAL int "webserver port."]
+  (comp
+   ;; an idea: wrap the watch task configuring only backend files to automatically reset system
+   (start-system :port port)
+   identity))
+
+(deftask dev
+  "Run system in development mode."
+  []
+  (comp
+   (backend :port 8090)
+   (frontend)
    identity))

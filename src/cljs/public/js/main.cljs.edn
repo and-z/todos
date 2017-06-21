@@ -1,3 +1,2 @@
 {:compiler-options {:main "todos.core"
-                    :asset-path "/js/main.out"
-                    }}
+                    :asset-path "/js/main.out"}}
