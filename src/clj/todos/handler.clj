@@ -6,7 +6,7 @@
   (start [this]
     (assoc this :handler ((resolve (:create-handler-fn routes)) this)))
   (stop [this]
-    this))
+    (assoc this :handler nil)))
 
 (defn new-handler [opts]
   (map->Handler opts))

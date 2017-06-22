@@ -5,6 +5,7 @@
           :source-paths   #{"test" "src/clj" "src/cljs"}
           :dependencies   '[[org.clojure/clojure "1.9.0-alpha15"]
                             [org.clojure/clojurescript "1.9.562" :scope "test"]
+                            [org.clojure/core.async "0.3.443"]
                             [adzerk/boot-cljs "2.0.0" :scope "test"]
                             [adzerk/boot-reload "0.5.1" :scope "test"]
                             [com.stuartsierra/component "0.3.2"]
@@ -13,10 +14,15 @@
                             [http-kit "2.2.0"]
                             [ring/ring-defaults "0.3.0"]
                             [reloaded.repl "0.2.3" :scope "test"]
+                            [adzerk/boot-cljs-repl   "0.3.3" :scope "test"]
+                            [com.cemerick/piggieback "0.2.1"  :scope "test"]
+                            [weasel                  "0.7.0"  :scope "test"]
+                            [org.clojure/tools.nrepl "0.2.12" :scope "test"]
                             [adzerk/boot-test "RELEASE" :scope "test"]])
 
 (require '[adzerk.boot-test :refer [test]]
          '[adzerk.boot-cljs :refer [cljs]]
+         '[adzerk.boot-cljs-repl :refer [cljs-repl start-repl]]
          '[adzerk.boot-reload :refer [reload]]
          '[clojure.tools.namespace.repl :as tns]
          '[reloaded.repl :as rr :refer [system reset start stop go]])
@@ -54,28 +60,33 @@
     (apply tns/set-refresh-dirs (get-env :directories))
     (reloaded.repl/set-init! #(initializer {:port port}))
     (with-pass-thru _
-      (boot.util/info "Starting system ...\n")
-      (boot.util/info "System state is %s\n" (go)))))
+      (boot.util/info "Started system. State is %s\n" (go)))))
+
+(def cljs-files-re #".*\.cljs$")
 
 (deftask frontend
   []
   (comp
-   (watch :verbose true)
+   (watch :verbose true :include #{cljs-files-re})
    (reload)
+   (cljs-repl)
    (cljs)
    identity))
 
 (deftask backend
-  [p port VAL int "webserver port."]
+  [p port VAL int "webserver port."
+   a auto     bool "automatically reset system on files change."]
   (comp
-   ;; an idea: wrap the watch task configuring only backend files to automatically reset system
    (start-system :port port)
+   #_(when auto
+     (watch :verbose true :exclude #{cljs-files-re})
+     (reset))
    identity))
 
 (deftask dev
   "Run system in development mode."
   []
   (comp
-   (backend :port 8090)
+   (backend :port 8090 :auto true)
    (frontend)
    identity))
