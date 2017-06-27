@@ -10,6 +10,10 @@
                             [adzerk/boot-reload "0.5.1" :scope "test"]
                             [com.stuartsierra/component "0.3.2"]
                             [hiccup "1.0.5"]
+                            [reagent "0.6.0"
+                             :exclusions [[cljsjs/react]
+                                          [cljsjs/react-dom]
+                                          #_[cljsjs/react-dom-server]]]
                             [compojure "1.6.0"]
                             [http-kit "2.2.0"]
                             [ring/ring-defaults "0.3.0"]

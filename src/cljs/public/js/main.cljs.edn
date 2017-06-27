@@ -1,2 +1,7 @@
-{:compiler-options {:main "todos.core"
-                    :asset-path "/js/main.out"}}
+{:compiler-options
+ {:main "todos.core"
+  :asset-path "/js/main.out"
+  :foreign-libs [{:file "public/js/build/bundle.js"
+                  :provides ["cljsjs.react"
+                             "cljsjs.react.dom"
+                             "cljsjs.react-bootstrap"]}]}}

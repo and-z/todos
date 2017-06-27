@@ -7,7 +7,8 @@
    [:head
     [:meta {:charset "utf-8"}]
     [:meta {:name "viewport" :conten "width=device-width, initial-scale=1.0"}]
-    [:title "Main page"]]
+    [:title "Main page"]
+    (h/include-css "css/bootstrap.min.css")]
    [:body
     [:main
      [:div#app
