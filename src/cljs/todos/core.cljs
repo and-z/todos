@@ -8,7 +8,6 @@
   (:import [goog.net XhrIo EventType]
            [goog.events EventType]))
 
-(enable-console-print!)
 
 ;; (println "Hello world!")
 

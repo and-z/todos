@@ -19,6 +19,19 @@
                   :exclusions [[cljsjs/react]
                                [cljsjs/react-dom]
                                #_[cljsjs/react-dom-server]]]]
+  :plugins [[lein-figwheel "0.5.11"]]
+  :figwheel {:nrepl-port 7002}
+  :cljsbuild {:builds [{:id "dev"
+                        :figwheel {:on-jsload "dev/on-reload"}
+                        :source-paths ["src/cljs" "cljs-dev"]
+                        :compiler {:asset-path "/js/out"
+                                   :main "todos.core"
+                                   :output-to "resources/public/js/main.js"
+                                   :output-dir "resources/public/js/out"
+                                   :foreign-libs [{:file "resources/public/js/build/bundle.js"
+                                                   :provides ["cljsjs.react" "cljsjs.react.dom" "cljsjs.react-bootstrap"]}]}}]}
   :profiles {:dev {:source-paths ["dev"]
                    :repl-options {:init-ns dev}
-                   :dependencies [[reloaded.repl "0.2.3"]]}})
+                   :dependencies [[reloaded.repl "0.2.3"]
+                                  [com.cemerick/piggieback "0.2.2"]
+                                  [figwheel-sidecar "0.5.8"]]}})

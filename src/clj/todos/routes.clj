@@ -11,6 +11,8 @@
    (c/context "/app" _
               (c/GET "*" _ (pages/main-page))
               (route/not-found "Nothing here"))
+   (route/resources "/js" {:root "js"})
+   (route/resources "/css" {:root "css"})
    (c/GET "*" _ "good night")))
 
 (defn create-handler [ctx]

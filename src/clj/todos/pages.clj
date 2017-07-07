@@ -13,4 +13,4 @@
     [:main
      [:div#app
       [:p "Loading ..."]]]
-    (h/include-js "js/main.js")]))
+    (h/include-js "/js/main.js")]))
