@@ -1,0 +1,11 @@
+;; delete node_modules directory
+;; cd $PROJECT_HOME/resources/foreign-js && npm install && npm run-script build-dev
+
+;; start Figwheel in a separate shell via `lein with-profile +fw figwheel`
+
+;; connect to Figwheel nREPL server via cider-connect on localhost:7002
+;; (cljs-repl)
+
+
+;; start project nREPL server via cider-jack-in
+;; start system via `(reset)`
