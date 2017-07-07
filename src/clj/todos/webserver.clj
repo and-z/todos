@@ -1,12 +1,12 @@
 (ns todos.webserver
   (:require [com.stuartsierra.component :as component]
-            [org.httpkit.server :as server]))
+            [org.httpkit.server :as http-kit]))
 
-(defrecord WebServer [port ring-handler]
+(defrecord WebServer [port routes]
   component/Lifecycle
   (start [this]
-    (let [h (:handler ring-handler)]
-      (assoc this :server (server/run-server h {:port port}))))
+    (let [h (:create-handler-fn routes)]
+      (assoc this :server (http-kit/run-server (h this) {:port port}))))
   (stop [this]
     (when-let [server (:server this)]
       (server))

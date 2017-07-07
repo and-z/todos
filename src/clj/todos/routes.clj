@@ -11,18 +11,17 @@
    (c/context "/app" _
               (c/GET "*" _ (pages/main-page))
               (route/not-found "Nothing here"))
-   (c/GET "*" _ "good evening")))
+   (c/GET "*" _ "good night")))
 
 (defn create-handler [ctx]
   (-> (app-routes ctx)
-      (rr/wrap-resource "public")
-      (c/wrap-routes #(-> %
-                          (rd/wrap-defaults rd/site-defaults)))))
+      (c/wrap-routes
+       #(-> % (rd/wrap-defaults rd/site-defaults)))))
 
 (defrecord Routes []
   component/Lifecycle
   (start [this]
-    (assoc this :create-handler-fn `create-handler))
+    (assoc this :create-handler-fn create-handler))
   (stop [this]
     (assoc this :create-handler-fn nil)))
 
